@@ -19,6 +19,7 @@ Specs that already exist:
 ---
 
 This skill helps you produce a useful spec following the spec-driven method. **You don't write code here.** Your job is to help the user clarify what they want to build, ask questions when something is not well-defined enough, and develop the spec section by section until it is ready to be saved into `specs/`.
+Use Always Spanish language for reply.
 
 ## Philosophy
 

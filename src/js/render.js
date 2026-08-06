@@ -110,11 +110,33 @@ function drawGhost( ctx, g, color ) {
   ctx.beginPath();
   ctx.arc( cx, cy - 1, r, Math.PI, 0, false ); // cabeza
   ctx.lineTo( right, bottom );
-  // falda ondulada (3 picos)
-  ctx.lineTo( right - r * 0.66, bottom - 4 );
-  ctx.lineTo( cx, bottom );
-  ctx.lineTo( left + r * 0.66, bottom - 4 );
-  ctx.lineTo( left, bottom );
+
+  // Variacion de forma segun kind.
+  if ( g.kind === 'hunter' ) {
+    // Puntiagudo: 2 picos marcados.
+    ctx.lineTo( cx + r * 0.5, bottom - 5 );
+    ctx.lineTo( cx, bottom );
+    ctx.lineTo( cx - r * 0.5, bottom - 5 );
+  } else if ( g.kind === 'ambusher' ) {
+    // Con flecha: pico central hacia abajo.
+    ctx.lineTo( right, bottom );
+    ctx.lineTo( cx + r * 0.5, bottom - 3 );
+    ctx.lineTo( cx, bottom + 3 );
+    ctx.lineTo( cx - r * 0.5, bottom - 3 );
+  } else if ( g.kind === 'flanker' ) {
+    // Con aletas: 2 ondas suaves a los lados.
+    ctx.lineTo( right, bottom - 3 );
+    ctx.lineTo( cx + r * 0.5, bottom );
+    ctx.lineTo( cx, bottom - 2 );
+    ctx.lineTo( cx - r * 0.5, bottom );
+    ctx.lineTo( left, bottom - 3 );
+  } else if ( g.kind === 'wanderer' ) {
+    // Redondeado: falda en curva continua.
+    ctx.quadraticCurveTo( cx + r * 0.5, bottom + 2, cx, bottom );
+    ctx.quadraticCurveTo( cx - r * 0.5, bottom + 2, left, bottom - 1 );
+  } else {
+    ctx.lineTo( cx, bottom );
+  }
   ctx.closePath();
   ctx.fill();
 
@@ -144,7 +166,12 @@ function drawHUD( ctx, game, W ) {
   ctx.fillText( 'VIDAS ' + game.lives, W * TILE - 8, 4 );
 }
 
-const GHOST_COLORS = [ '#ff0000', '#00ffff', '#ffb8ff', '#ffb852' ];
+const GHOST_COLORS = {
+  hunter: '#ff0000',
+  ambusher: '#ffb8ff',
+  flanker: '#00ffff',
+  wanderer: '#ffb852',
+};
 
 function draw( ctx, game, frame ) {
   const grid = game.grid;
@@ -158,7 +185,7 @@ function draw( ctx, game, frame ) {
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000' ) );
+  game.ghosts.forEach( ( g ) => drawGhost( ctx, g, GHOST_COLORS[ g.kind ] || '#ff0000' ) );
   drawHUD( ctx, game, W );
 }
 

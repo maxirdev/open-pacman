@@ -12,6 +12,7 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
+const RELEASE_GAP = 300;    // frames entre liberaciones (~5 s a 60 fps)
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
@@ -36,13 +37,16 @@ function createGame() {
       nextDir: null,
       speed: PACMAN_SPEED,
     },
-    ghosts: GHOST_STARTS.map( ( g ) => ( {
+    ghosts: GHOST_STARTS.map( ( g, i ) => ( {
       x: g.x,
       y: g.y,
       dir: 'up',
       speed: GHOST_SPEED,
       kind: g.kind,
+      released: false,
+      releaseAt: i * RELEASE_GAP,
     } ) ),
+    frame: 0,
   };
 }
 
@@ -120,30 +124,91 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
-    let best = choices[ 0 ];
-    let bestDist = Infinity;
-    for ( const dir of choices ) {
-      const d = DIRS[ dir ];
-      const nx = g.x + d.x;
-      const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
-        bestDist = dist;
-        best = dir;
-      }
+  const px = Math.round( p.x );
+  const py = Math.round( p.y );
+
+  // Objetivo de cada personalidad y si huye (maximiza distancia) o no.
+  let targetX = px;
+  let targetY = py;
+  let flee = false;
+
+  switch ( g.kind ) {
+    case 'hunter': {
+      targetX = px;
+      targetY = py;
+      break;
     }
-    g.dir = best;
-  } else {
-    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    case 'ambusher': {
+      const pd = DIRS[ p.dir ] || DIRS.up;
+      targetX = px + 4 * pd.x;
+      targetY = py + 4 * pd.y;
+      break;
+    }
+    case 'flanker': {
+      const blinky = game.ghosts.find( ( ghost ) => ghost.kind === 'hunter' );
+      targetX = px * 2 - Math.round( blinky.x );
+      targetY = py * 2 - Math.round( blinky.y );
+      break;
+    }
+    case 'wanderer': {
+      const dist = Math.abs( g.x - px ) + Math.abs( g.y - py );
+      if ( dist > 8 ) {
+        targetX = px;
+        targetY = py;
+      } else {
+        flee = true;
+      }
+      break;
+    }
+    default: {
+      g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+      return;
+    }
   }
+
+  // Elegir la direccion que minimiza (o maximiza si huye) la distancia
+  // Manhattan al objetivo.
+  let best = choices[ 0 ];
+  let bestDist = flee ? -Infinity : Infinity;
+  for ( const dir of choices ) {
+    const d = DIRS[ dir ];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
+    const dist = Math.abs( nx - targetX ) + Math.abs( ny - targetY );
+    if ( ( flee && dist > bestDist ) || ( !flee && dist < bestDist ) ) {
+      bestDist = dist;
+      best = dir;
+    }
+  }
+  g.dir = best;
+}
+
+function inPen( g ) {
+  return g.x >= 13 && g.x <= 14 && g.y >= 13 && g.y <= 15;
 }
 
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  // Fantasma no liberado: permanece dentro de la pen sin moverse.
+  if ( !g.released ) return;
+
+  // Fantasma liberado pero aun dentro de la pen: forzar dir='up' hasta
+  // quedar por encima de la puerta (y < 12). Sin decideGhost.
+  if ( inPen( g ) ) {
+    if ( aligned( g.x ) && aligned( g.y ) ) {
+      g.x = Math.round( g.x );
+      g.y = Math.round( g.y );
+      g.dir = 'up';
+      if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
+    }
+    const d = DIRS[ g.dir ];
+    g.x += d.x * g.speed;
+    g.y += d.y * g.speed;
+    wrapTunnel( g, width );
+    return;
+  }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
@@ -177,6 +242,12 @@ function collides( a, b ) {
 
 function update( game ) {
   movePacman( game );
+
+  // Liberacion escalonada de fantasmas por temporizador.
+  for ( const g of game.ghosts ) {
+    if ( !g.released && game.frame >= g.releaseAt ) g.released = true;
+  }
+
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
   for ( const g of game.ghosts ) {
@@ -192,6 +263,7 @@ function update( game ) {
   }
 
   if ( game.dotsRemaining <= 0 ) game.state = 'won';
+  game.frame++;
 }
 
 window.createGame = createGame;

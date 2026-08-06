@@ -27,6 +27,14 @@ Branch-creation config:
 ## Instructions
 
 Follow these four phases in strict order. **Do not advance to the next phase if the previous one did not complete correctly.**
+Use Always Spanish language for reply.
+
+## Code Quality & Style Guidelines
+
+- **Simplicity over cleverness:** Write simple, clean, and easy-to-understand code. Avoid overly complex patterns or obscure one-liners.
+- **Descriptive Naming:** Use clear, fully spelled-out names for variables, functions, classes, and files. 
+- **No abbreviations:** Do **not** use abbreviations, acronyms, or truncated words (e.g., use `user_repository` instead of `usr_repo`, `currentIndex` instead of `idx`).
+- **Readability first:** Prioritize code readability for humans over concise code length.
 
 ---
 
