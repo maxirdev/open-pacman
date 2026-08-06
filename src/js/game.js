@@ -124,25 +124,63 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
-    let best = choices[ 0 ];
-    let bestDist = Infinity;
-    for ( const dir of choices ) {
-      const d = DIRS[ dir ];
-      const nx = g.x + d.x;
-      const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
-        bestDist = dist;
-        best = dir;
-      }
+  const px = Math.round( p.x );
+  const py = Math.round( p.y );
+
+  // Objetivo de cada personalidad y si huye (maximiza distancia) o no.
+  let targetX = px;
+  let targetY = py;
+  let flee = false;
+
+  switch ( g.kind ) {
+    case 'hunter': {
+      targetX = px;
+      targetY = py;
+      break;
     }
-    g.dir = best;
-  } else {
-    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    case 'ambusher': {
+      const pd = DIRS[ p.dir ] || DIRS.up;
+      targetX = px + 4 * pd.x;
+      targetY = py + 4 * pd.y;
+      break;
+    }
+    case 'flanker': {
+      const blinky = game.ghosts.find( ( ghost ) => ghost.kind === 'hunter' );
+      targetX = px * 2 - Math.round( blinky.x );
+      targetY = py * 2 - Math.round( blinky.y );
+      break;
+    }
+    case 'wanderer': {
+      const dist = Math.abs( g.x - px ) + Math.abs( g.y - py );
+      if ( dist > 8 ) {
+        targetX = px;
+        targetY = py;
+      } else {
+        flee = true;
+      }
+      break;
+    }
+    default: {
+      g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+      return;
+    }
   }
+
+  // Elegir la direccion que minimiza (o maximiza si huye) la distancia
+  // Manhattan al objetivo.
+  let best = choices[ 0 ];
+  let bestDist = flee ? -Infinity : Infinity;
+  for ( const dir of choices ) {
+    const d = DIRS[ dir ];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
+    const dist = Math.abs( nx - targetX ) + Math.abs( ny - targetY );
+    if ( ( flee && dist > bestDist ) || ( !flee && dist < bestDist ) ) {
+      bestDist = dist;
+      best = dir;
+    }
+  }
+  g.dir = best;
 }
 
 function inPen( g ) {
