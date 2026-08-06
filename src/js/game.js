@@ -181,6 +181,12 @@ function collides( a, b ) {
 
 function update( game ) {
   movePacman( game );
+
+  // Liberacion escalonada de fantasmas por temporizador.
+  for ( const g of game.ghosts ) {
+    if ( !g.released && game.frame >= g.releaseAt ) g.released = true;
+  }
+
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
   for ( const g of game.ghosts ) {
@@ -196,6 +202,7 @@ function update( game ) {
   }
 
   if ( game.dotsRemaining <= 0 ) game.state = 'won';
+  game.frame++;
 }
 
 window.createGame = createGame;
