@@ -145,9 +145,32 @@ function decideGhost( game, g ) {
   }
 }
 
+function inPen( g ) {
+  return g.x >= 13 && g.x <= 14 && g.y >= 13 && g.y <= 15;
+}
+
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
+
+  // Fantasma no liberado: permanece dentro de la pen sin moverse.
+  if ( !g.released ) return;
+
+  // Fantasma liberado pero aun dentro de la pen: forzar dir='up' hasta
+  // quedar por encima de la puerta (y < 12). Sin decideGhost.
+  if ( inPen( g ) ) {
+    if ( aligned( g.x ) && aligned( g.y ) ) {
+      g.x = Math.round( g.x );
+      g.y = Math.round( g.y );
+      g.dir = 'up';
+      if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
+    }
+    const d = DIRS[ g.dir ];
+    g.x += d.x * g.speed;
+    g.y += d.y * g.speed;
+    wrapTunnel( g, width );
+    return;
+  }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
