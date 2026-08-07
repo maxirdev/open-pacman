@@ -272,6 +272,13 @@ function collides( a, b ) {
 function update( game ) {
   movePacman( game );
 
+  // Velocidades efectivas segun el modo Fear.
+  const inFear = game.fearTimer > 0;
+  game.pacman.speed = inFear ? PACMAN_SPEED * FEAR_PACMAN_MULT : PACMAN_SPEED;
+  for ( const g of game.ghosts ) {
+    g.speed = g.frightened ? GHOST_SPEED * FEAR_GHOST_MULT : GHOST_SPEED;
+  }
+
   // Liberacion escalonada de fantasmas por temporizador.
   for ( const g of game.ghosts ) {
     if ( !g.released && game.frame >= g.releaseAt ) g.released = true;
@@ -288,6 +295,14 @@ function update( game ) {
       }
       resetPositions( game );
       break;
+    }
+  }
+
+  // Cuenta atras del Fear. Se decrementa despues de procesar la comida.
+  if ( game.fearTimer > 0 ) {
+    game.fearTimer--;
+    if ( game.fearTimer === 0 ) {
+      for ( const g of game.ghosts ) g.frightened = false;
     }
   }
 
