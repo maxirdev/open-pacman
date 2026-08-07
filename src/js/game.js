@@ -289,16 +289,30 @@ function update( game ) {
 
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
-  for ( const g of game.ghosts ) {
-    if ( collides( game.pacman, g ) ) {
-      game.lives--;
-      if ( game.lives <= 0 ) {
-        game.state = 'lost';
-        return;
-      }
-      resetPositions( game );
-      break;
+  for ( let i = 0; i < game.ghosts.length; i++ ) {
+    const g = game.ghosts[ i ];
+    if ( !collides( game.pacman, g ) ) continue;
+
+    // Fantasma en Fear: se come. Suma puntos y vuelve a la jaula.
+    if ( g.frightened ) {
+      game.score += 200;
+      g.x = GHOST_STARTS[ i ].x;
+      g.y = GHOST_STARTS[ i ].y;
+      g.dir = 'up';
+      g.released = false;
+      g.releaseAt = game.frame + RELEASE_GAP;
+      g.frightened = false;
+      continue;
     }
+
+    // Fantasma normal: pierde una vida y se reinician posiciones.
+    game.lives--;
+    if ( game.lives <= 0 ) {
+      game.state = 'lost';
+      return;
+    }
+    resetPositions( game );
+    break;
   }
 
   // Cuenta atras del Fear. Se decrementa despues de procesar la comida.
