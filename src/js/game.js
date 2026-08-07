@@ -199,9 +199,10 @@ function moveGhost( game, g ) {
   // Fantasma no liberado: permanece dentro de la pen sin moverse.
   if ( !g.released ) return;
 
-  // Fantasma liberado pero aun dentro de la pen: forzar dir='up' hasta
-  // quedar por encima de la puerta (y < 12). Sin decideGhost.
-  if ( inPen( g ) ) {
+  // Fantasma liberado pero aun dentro de la pen o en la fila de la puerta
+  // (y >= 12): forzar dir='up' hasta quedar por encima de la puerta (y < 12).
+  // Sin decideGhost, para que el AI arranque desde suelo seguro.
+  if ( isPenArea( g.x, g.y ) ) {
     if ( aligned( g.x ) && aligned( g.y ) ) {
       g.x = Math.round( g.x );
       g.y = Math.round( g.y );
