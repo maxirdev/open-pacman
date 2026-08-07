@@ -5,6 +5,8 @@ const TILE = 20;
 const WALL_COLOR = '#2121ff';
 const DOOR_COLOR = '#ffb8ff';
 const DOT_COLOR = '#ffb897';
+const PELLET_COLOR = '#ffd700';
+const FEAR_COLOR = '#0000cc';
 
 function cellCenter( x, y ) {
   return { cx: x * TILE + TILE / 2, cy: y * TILE + TILE / 2 };
@@ -74,6 +76,25 @@ function drawDots( ctx, grid ) {
       const { cx, cy } = cellCenter( x, y );
       ctx.beginPath();
       ctx.arc( cx, cy, 2.5, 0, Math.PI * 2 );
+      ctx.fill();
+    }
+  }
+}
+
+// Power pellets: mas grandes que los dots y con parpadeo segun el frame.
+function drawPellets( ctx, grid, frame ) {
+  for ( let y = 0; y < grid.length; y++ ) {
+    for ( let x = 0; x < grid[ 0 ].length; x++ ) {
+      if ( grid[ y ][ x ] !== 4 ) continue;
+      const { cx, cy } = cellCenter( x, y );
+      const pulse = ( Math.sin( frame * 0.1 ) + 1 ) / 2; // 0..1
+      ctx.fillStyle = PELLET_COLOR;
+      ctx.beginPath();
+      ctx.arc( cx, cy, 6, 0, Math.PI * 2 );
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc( cx, cy, 2.5 * ( 1 - pulse * 0.5 ), 0, Math.PI * 2 );
       ctx.fill();
     }
   }
@@ -184,8 +205,11 @@ function draw( ctx, game, frame ) {
   drawWalls( ctx, grid );
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
+  drawPellets( ctx, grid, frame );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g ) => drawGhost( ctx, g, GHOST_COLORS[ g.kind ] || '#ff0000' ) );
+  game.ghosts.forEach( ( g ) =>
+    drawGhost( ctx, g, g.frightened ? FEAR_COLOR : GHOST_COLORS[ g.kind ] || '#ff0000' )
+  );
   drawHUD( ctx, game, W );
 }
 
