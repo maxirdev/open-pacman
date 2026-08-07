@@ -118,9 +118,15 @@ function decideGhost( game, g ) {
   const grid = game.grid;
   const p = game.pacman;
 
-  const options = Object.keys( DIRS ).filter(
-    ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir, 'ghost' )
-  );
+  // Excluye el giro de 180 y las celdas de la pen/puerta (reentrada).
+  const options = Object.keys( DIRS ).filter( ( dir ) => {
+    const d = DIRS[ dir ];
+    return (
+      dir !== OPPOSITE[ g.dir ] &&
+      canMove( grid, g.x, g.y, dir, 'ghost' ) &&
+      !isPenArea( g.x + d.x, g.y + d.y )
+    );
+  } );
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
@@ -187,6 +193,11 @@ function inPen( g ) {
   return g.x >= 13 && g.x <= 14 && g.y >= 13 && g.y <= 15;
 }
 
+// Pen interior + fila de la puerta (y=12). Celda "vedada" para la reentrada.
+function isPenArea( x, y ) {
+  return x >= 13 && x <= 14 && y >= 12 && y <= 15;
+}
+
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
@@ -194,9 +205,10 @@ function moveGhost( game, g ) {
   // Fantasma no liberado: permanece dentro de la pen sin moverse.
   if ( !g.released ) return;
 
-  // Fantasma liberado pero aun dentro de la pen: forzar dir='up' hasta
-  // quedar por encima de la puerta (y < 12). Sin decideGhost.
-  if ( inPen( g ) ) {
+  // Fantasma liberado pero aun dentro de la pen o en la fila de la puerta
+  // (y >= 12): forzar dir='up' hasta quedar por encima de la puerta (y < 12).
+  // Sin decideGhost, para que el AI arranque desde suelo seguro.
+  if ( isPenArea( g.x, g.y ) ) {
     if ( aligned( g.x ) && aligned( g.y ) ) {
       g.x = Math.round( g.x );
       g.y = Math.round( g.y );
