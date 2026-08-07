@@ -126,9 +126,31 @@ function movePacman( game ) {
   }
 
   const d = DIRS[ p.dir ];
+  const oldX = p.x;
+  const oldY = p.y;
   p.x += d.x * p.speed;
   p.y += d.y * p.speed;
   wrapTunnel( p, width );
+
+  // Alineacion robusta a cualquier velocidad. La logica de giro/comer/muro
+  // solo corre sobre un centro de celda (entero). Con velocidades que no
+  // caen exacto en el centro (p.ej. el x1.25 del modo Fear, 5/64), Pac-Man
+  // quedaba desalineado: no giraba, no comia y atravesaba paredes/bordes.
+  // Aqui detectamos el cruce del centro de la celda destino y hacemos snap.
+  const crossedX =
+    ( d.x > 0 && Math.floor( oldX ) !== Math.floor( p.x ) ) ||
+    ( d.x < 0 && Math.ceil( oldX ) !== Math.ceil( p.x ) );
+  const crossedY =
+    ( d.y > 0 && Math.floor( oldY ) !== Math.floor( p.y ) ) ||
+    ( d.y < 0 && Math.ceil( oldY ) !== Math.ceil( p.y ) );
+
+  // En la fila del tunel el salto por wrap falsea el cruce; no hace falta
+  // alinear porque no hay muros ni dots (decisiones innecesarias).
+  const inTunnelRow = Math.round( p.y ) === TUNNEL_ROW;
+  if ( !inTunnelRow ) {
+    if ( crossedX ) p.x = Math.round( p.x );
+    if ( crossedY ) p.y = Math.round( p.y );
+  }
 }
 
 function decideGhost( game, g ) {
