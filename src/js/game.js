@@ -118,9 +118,15 @@ function decideGhost( game, g ) {
   const grid = game.grid;
   const p = game.pacman;
 
-  const options = Object.keys( DIRS ).filter(
-    ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir, 'ghost' )
-  );
+  // Excluye el giro de 180 y las celdas de la pen/puerta (reentrada).
+  const options = Object.keys( DIRS ).filter( ( dir ) => {
+    const d = DIRS[ dir ];
+    return (
+      dir !== OPPOSITE[ g.dir ] &&
+      canMove( grid, g.x, g.y, dir, 'ghost' ) &&
+      !isPenArea( g.x + d.x, g.y + d.y )
+    );
+  } );
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
