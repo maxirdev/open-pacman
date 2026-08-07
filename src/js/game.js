@@ -187,6 +187,11 @@ function inPen( g ) {
   return g.x >= 13 && g.x <= 14 && g.y >= 13 && g.y <= 15;
 }
 
+// Pen interior + fila de la puerta (y=12). Celda "vedada" para la reentrada.
+function isPenArea( x, y ) {
+  return x >= 13 && x <= 14 && y >= 12 && y <= 15;
+}
+
 function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
