@@ -13,6 +13,9 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.0625; // 1/16 celda/frame -> alinea cada 16 frames
 const GHOST_SPEED = 0.05;    // 1/20 celda/frame
 const RELEASE_GAP = 300;    // frames entre liberaciones (~5 s a 60 fps)
+const POWER_PELLET_DURATION = 300; // frames (5 s a 60 fps)
+const FEAR_PACMAN_MULT = 1.25;     // Pac-Man: 0.0625 * 1.25
+const FEAR_GHOST_MULT = 0.5;       // Fantasmas: 0.05 * 0.5
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
@@ -22,7 +25,7 @@ function createGame() {
   grid[ PACMAN_START.y ][ PACMAN_START.x ] = 0;
 
   let dots = 0;
-  for ( const row of grid ) for ( const v of row ) if ( v === 2 ) dots++;
+  for ( const row of grid ) for ( const v of row ) if ( v === 2 || v === 4 ) dots++;
 
   return {
     state: 'start',
@@ -30,6 +33,7 @@ function createGame() {
     lives: 3,
     dotsRemaining: dots,
     grid,
+    fearTimer: 0,
     pacman: {
       x: PACMAN_START.x,
       y: PACMAN_START.y,
@@ -45,6 +49,7 @@ function createGame() {
       kind: g.kind,
       released: false,
       releaseAt: i * RELEASE_GAP,
+      frightened: false,
     } ) ),
     frame: 0,
   };
