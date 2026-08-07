@@ -10,8 +10,8 @@ const DIRS = {
 };
 const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
-const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
-const GHOST_SPEED = 0.1;    // 1/10 celda/frame
+const PACMAN_SPEED = 0.0625; // 1/16 celda/frame -> alinea cada 16 frames
+const GHOST_SPEED = 0.05;    // 1/20 celda/frame
 const RELEASE_GAP = 300;    // frames entre liberaciones (~5 s a 60 fps)
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
