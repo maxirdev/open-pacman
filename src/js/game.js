@@ -109,6 +109,18 @@ function movePacman( game ) {
       game.score += 10;
       game.dotsRemaining--;
     }
+    // Comer power pellet: activa el modo Fear.
+    if ( grid[ p.y ][ p.x ] === 4 ) {
+      grid[ p.y ][ p.x ] = 0;
+      game.dotsRemaining--;
+      game.fearTimer = POWER_PELLET_DURATION;
+      for ( const g of game.ghosts ) {
+        if ( g.released ) {
+          g.frightened = true;
+          g.dir = OPPOSITE[ g.dir ];
+        }
+      }
+    }
     // Si no puede seguir, se detiene en la celda.
     if ( !canMove( grid, p.x, p.y, p.dir, 'pacman' ) ) return;
   }
