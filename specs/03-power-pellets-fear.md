@@ -1,6 +1,6 @@
 # SPEC 03 — Power Pellets y modo Fear
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 01, SPEC 02
 > **Date:** 2026-08-06
 > **Objective:** Añadir 4 power pellets en los extremos del laberinto que, al ser comidos, activan durante 5 s el modo Fear: Pac-Man un 25% más rápido y los fantasmas un 50% más lentos huyendo, pudiendo ser devueltos a la jaula al tocarlos.
