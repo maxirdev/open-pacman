@@ -155,6 +155,9 @@ function decideGhost( game, g ) {
   let targetY = py;
   let flee = false;
 
+  // En modo Fear el fantasma huye de Pac-Man maximizando la distancia.
+  if ( g.frightened ) flee = true;
+
   switch ( g.kind ) {
     case 'hunter': {
       targetX = px;
